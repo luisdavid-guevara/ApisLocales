@@ -1,0 +1,119 @@
+-- Creación de la tabla cat_customer
+CREATE TABLE cat_customer (
+  id_customer serial PRIMARY KEY,
+  short_name varchar,
+  tax_id varchar,
+  tax_regime varchar,
+  customer_name varchar,
+  legal_name varchar,
+  website varchar,
+  email varchar,
+  phone varchar,
+  is_active boolean
+);
+
+-- Índice único en short_name
+CREATE UNIQUE INDEX idxCustomer ON cat_customer (short_name);
+
+-- Creación de la tabla mov_project
+CREATE TABLE mov_project (
+  id_project serial PRIMARY KEY,
+  id_company integer,
+  cod_project varchar,
+  name varchar,
+  short_name varchar REFERENCES cat_customer(short_name),
+  created_at timestamp,
+  created_by varchar,
+  updated_at timestamp,
+  updated_by varchar
+);
+
+-- Índice único en id_company y cod_project
+CREATE UNIQUE INDEX idxProject ON mov_project (id_company, cod_project);
+
+-- Creación de la tabla cat_worker
+CREATE TABLE cat_worker (
+  id_worker serial PRIMARY KEY,
+  name varchar,
+  user varchar,
+  password varchar
+);
+
+-- Creación de la tabla cat_status
+CREATE TABLE cat_status (
+  id_status serial PRIMARY KEY,
+  description varchar
+);
+
+-- Creación de la tabla cat_product
+CREATE TABLE cat_product (
+  id_product serial PRIMARY KEY,
+  product_group_code varchar,
+  product_code varchar,
+  sku varchar,
+  uom varchar,
+  minimum_stock float,
+  is_active boolean
+);
+
+-- Índice único en product_code
+CREATE UNIQUE INDEX idxProduct ON cat_product (product_code);
+
+-- Creación de la tabla mov_service_order
+CREATE TABLE mov_service_order (
+  id_service_order serial PRIMARY KEY,
+  cod_project varchar,
+  short_name varchar,
+  date_assigned timestamp,
+  time_assigned timestamp,
+  id_worker integer REFERENCES cat_worker(id_worker),
+  map_latitude varchar,
+  map_longitude varchar,
+  url_signature varchar
+);
+
+-- Creación de la tabla mov_service_order_task
+CREATE TABLE mov_service_order_task (
+  id_service_order_task serial PRIMARY KEY,
+  id_service_order integer REFERENCES mov_service_order(id_service_order),
+  id_worker integer REFERENCES cat_worker(id_worker),
+  id_equipment integer REFERENCES cat_equipment(id_equipment),
+  description varchar,
+  notes varchar,
+  date_service timestamp,
+  time_spent timestamp,
+  id_status integer REFERENCES cat_status(id_status)
+);
+
+-- Creación de la tabla mov_service_order_item
+CREATE TABLE mov_service_order_item (
+  id_service_order_item serial PRIMARY KEY,
+  id_service_order integer REFERENCES mov_service_order(id_service_order),
+  id_service_order_sequence integer,
+  product_code varchar REFERENCES cat_product(product_code),
+  quantity float,
+  unit_price float,
+  value float
+);
+
+-- Índice único en id_service_order y id_service_order_sequence
+CREATE UNIQUE INDEX idxServiceOrderItem ON mov_service_order_item (id_service_order, id_service_order_sequence);
+
+-- Creación de la tabla cat_equipment
+CREATE TABLE cat_equipment (
+  id_equipment serial PRIMARY KEY,
+  equipment_type varchar,
+  serial_number integer,
+  condition varchar
+);
+
+-- RELACIONES
+-- Relación entre mov_service_order y mov_project
+ALTER TABLE mov_service_order ADD CONSTRAINT fk_cod_project FOREIGN KEY (cod_project) REFERENCES mov_project(cod_project);
+
+-- Relación entre mov_service_order_task y cat_worker
+ALTER TABLE mov_service_order_task ADD CONSTRAINT fk_id_worker FOREIGN KEY (id_worker) REFERENCES cat_worker(id_worker);
+
+-- Relación entre mov_service_order_task y cat_status
+ALTER TABLE mov_service_order_task ADD CONSTRAINT fk_id_status FOREIGN KEY (id_status) REFERENCES cat_status(id_status);
+

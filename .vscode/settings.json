@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./App_Equipment",
+        "./App_Worker"
+    ]
+}
